@@ -1,0 +1,14 @@
+{
+    "The given data was invalid.": "Dữ liệu chưa hợp lệ.",
+    "(and :count more error)": "(và :count lỗi khác)",
+    "(and :count more errors)": "(và :count lỗi khác)",
+    "Unauthenticated.": "Bạn cần đăng nhập để tiếp tục.",
+    "This action is unauthorized.": "Bạn không có quyền thực hiện thao tác này.",
+    "Too Many Attempts.": "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.",
+    "Not Found": "Không tìm thấy dữ liệu.",
+    "Server Error": "Máy chủ gặp lỗi, vui lòng thử lại sau.",
+    "Service Unavailable": "Hệ thống đang bảo trì, vui lòng quay lại sau.",
+    "Method Not Allowed": "Thao tác không được hỗ trợ.",
+    "Forbidden": "Bạn không có quyền truy cập.",
+    "Page Expired": "Phiên làm việc đã hết hạn, vui lòng tải lại trang."
+}

@@ -1,0 +1,344 @@
+{
+  "info": {
+    "name": "Zentea API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "chat_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"khach@zentea.local\",\"password\":\"Zentea@123\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login succeeds',()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('token',pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/categories",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns success',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/products",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns success',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/orders",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns success',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "auth/me",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/auth/me",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns success',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chatbot (Gemini)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Co reply', () => pm.expect(body.reply).to.be.a('string').and.not.empty);",
+              "pm.test('products la mang toi da 3 mon', () => { pm.expect(body.products).to.be.an('array'); pm.expect(body.products.length).to.be.at.most(3); });",
+              "pm.test('Tra loi tu Gemini (khong phai fallback)', () => pm.expect(body.source).to.eql('gemini'));",
+              "pm.test('Co ma hoi thoai', () => pm.expect(body.conversation_id).to.match(/^[0-9a-f-]{36}$/));",
+              "pm.collectionVariables.set('chat_id', body.conversation_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/chat",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "chat"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Trời nóng quá, gợi ý mình món gì mát, ít ngọt dưới 50k\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Chatbot hỏi tiếp (giữ ngữ cảnh)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Cung hoi thoai', () => pm.expect(body.conversation_id).to.eql(pm.collectionVariables.get('chat_id')));",
+              "pm.test('Tra loi tu Gemini', () => pm.expect(body.source).to.eql('gemini'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/chat",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "chat"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"conversation_id\": \"{{chat_id}}\",\n  \"message\": \"Món đầu tiên bạn vừa gợi ý giá bao nhiêu?\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Chatbot lịch sử hội thoại",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Luu du 4 tin (2 hoi, 2 dap)', () => pm.expect(body.messages.map(m => m.role)).to.eql(['user','model','user','model']));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/chat/conversations/{{chat_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "chat",
+            "conversations",
+            "{{chat_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Chatbot streaming (SSE)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Content-Type la text/event-stream', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/event-stream'));",
+              "const events = pm.response.text().trim().split(/\\n\\n/).map(raw => { const lines = raw.split('\\n'); return { event: lines[0].slice(7), data: JSON.parse(lines[1].slice(6)) }; });",
+              "const deltas = events.filter(e => e.event === 'delta');",
+              "const done = events[events.length - 1];",
+              "pm.test('Thu tu su kien start, delta..., done', () => { pm.expect(events[0].event).to.eql('start'); pm.expect(done.event).to.eql('done'); pm.expect(deltas.length).to.be.above(0); });",
+              "pm.test('Ghep cac delta ra dung tin cuoi', () => pm.expect(deltas.map(d => d.data.text).join('')).to.eql(done.data.message.text));",
+              "pm.test('Tra loi tu Gemini', () => pm.expect(done.data.message.source).to.eql('gemini'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/event-stream"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/chat/stream",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "chat",
+            "stream"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Cần tỉnh táo để học bài, gợi ý cà phê\"\n}"
+        }
+      }
+    }
+  ]
+}
